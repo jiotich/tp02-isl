@@ -1,3 +1,5 @@
+//TODO: adequar o segundo always para que o primeiro faça 
+
 module maosma(clk, in, out);
 
 	integer given;
@@ -7,14 +9,15 @@ module maosma(clk, in, out);
 	output [1:0] out;
 
 	reg [1:0] out;
-	reg [1:0] state;
+	reg [2:0] state;
 
-	parameter zero=0, um=1, dois=2, tres=3;
+	parameter zero=0, um=1, dois=2, tres=3, quatro=4;
 	/*
 	zero = aguardando total ser 30 (ou seja, estado de recepção de valores)
-	um = processa o troco (caso seja cancelado sem terminar compra)
-	dois = dá o doce quando não é necessário troco
-	tres = dá o doce e o troco
+	um = verifica se total >= 30
+	dois = dá troco em caso de cancelamento
+	tres = dá o doce quando não é necessário troco
+	quatro = dá o doce e o troco
 	*/
 
 	initial begin
@@ -24,60 +27,94 @@ module maosma(clk, in, out);
 
 	always @(state) 
 		 begin
+			//$display("\nSTATE: %d, current_in: %b, acc = %d", state, in, given,);
 			  case (state)
 					zero:
-						out = 2'b00;
+						begin
+							//$display("Total: %d",given);
+						end
 					um:
 						begin
-							out = 2'b01;
+							if (in == 2'b01)
+								begin
+									$display("+5");
+									given+=5;
+								end
+							else if (in == 2'b10)
+								begin
+									$display("+10");
+									given+=10;
+								end
+							else if (in == 2'b11)
+								begin
+									$display("+25");
+									given+=25;
+								end
+
 						end
 					dois:
-						out = 2'b10;
+						begin
+							$display("***Cancelado***");
+							out = 2'b10;
+							given = 0;
+						end
 					tres:
-						out = 2'b11;
+						begin
+							$display("***TOMA BALA***");
+							out = 2'b11;
+							given = 0;
+						end
+					quatro:
+						begin
+							$display("***TOMA BALA E TROCO***");
+							out = 2'b10;
+							given = 0;
+						end
 					default:
-						out = 2'b00;
+						$display("deu merda.");
 			  endcase
 		 end
 
 	always @(posedge clk)
 		begin
-			if (given >= 30)
-				begin
-					if (given == 30)
-						begin
-							state = dois;
-							$display("TOMA DOCE");
-						end
-					else
-						$display(">TOMA DOCE e TROCO: %d", given-30);
-					given = 0;
-				end
-
-			else if (in == 2'b00)
-				given = 0;
-			else if (in == 2'b01)
-				given+=5;
-			else if (in == 2'b10)
-				given+=10;
-			else if (in == 2'b11)
-				given+=25;
-			$display("\n>Total Dado: ", given);
 			case (state)
 				zero:
-					if (in)
-					state = um;
+					begin
+						state = um;
+					end
 				um:
-					if (in)
-						 state = zero;
-					else
-						state = dois;
+					begin
+						if (in == 2'b00)
+							begin
+								state = dois;
+							end
+						else if (given == 30)
+							begin
+								state = tres;
+							end
+						else if (given > 30)
+							begin
+								state = quatro;
+							end
+						else if (given < 30)
+							state = zero;
+						
+					end
+
 				dois:
-					state = zero;
+					begin
+						state = zero;
+					end
 				tres:
-					state = zero;
+					begin
+						state = zero;
+					end
+				quatro:
+					begin
+						state = zero;
+					end
 				endcase
-		 end
+		end
 
 endmodule
 
@@ -91,16 +128,36 @@ module testbench();
 
     initial begin
 
-        $monitor("IN = %b, clk = %b", in, clk);
+        
 
         clk = 1'b1;
-		in = 2'b10;
-		#2;
-		in = 2'b10;
-		#2;
+		in = 2'b01;
+		//$monitor("IN = %b, clk = %b", in, clk);
+		
+		#4;
 		in = 2'b11;
-		#2;
-        $finish;
+		
+		#4;
+		in = 2'b11;
+		#4;
+		in = 2'b11;
+		
+		#4;
+		in = 2'b10;
+		
+		#4;
+		in = 2'b10;
+		
+		#4;
+		in = 2'b10;
+		
+		#4;
+		in = 2'b10;
+		
+		#4;
+		in = 2'b00;
+		#16;
+		$finish;
     
     end
 
