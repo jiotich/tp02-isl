@@ -13,7 +13,8 @@ parameter zero=0, um=1, dois=2, tres=3;
 /*
 zero = insuficiente
 um = processa o troco (caso seja cancelado sem terminar compra)
-dois = 
+dois = dá o doce quando não é necessário troco
+tres = dá o doce e o troco
 */
 
 initial begin
@@ -39,9 +40,13 @@ always @(state)
 
 always @(posedge clk)
     begin
-	$display("Dado: ", given);
+	$display("\n +Dado: ", given);
 		if (given >= 30)
-			$display("Troco: %b", given-30);
+			begin
+				$display(" Troco: %b", given-30);
+				given = 0;
+			end
+
 		else if (in == 2'b00)
 			given = 0;
 		else if (in == 2'b01)
@@ -78,10 +83,20 @@ module testbench();
 
     initial begin
 
-        $monitor("IN = %b", out);
+        //$monitor("IN = %b", out);
 
         clk = 1'b0;
-		in = 2'b00;
+		in = 2'b10;
+		#2;
+		in = 2'b10;
+		#2;
+		in = 2'b11;
+		#2;
+		in = 2'b10;
+		#2;
+		in = 2'b11;
+		#2;
+		in = 2'b11;
 		#2;
 		in = 2'b10;
 		#2;
