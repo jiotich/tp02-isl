@@ -1,166 +1,231 @@
-//TODO: adequar o segundo always para que o primeiro faça 
+module maosma(clk, in, out, confirm);
 
-module maosma(clk, in, out);
-
-	integer given;
-
-	input clk;
+	input clk, confirm;
 	input [1:0] in;
 	output [1:0] out;
 
 	reg [1:0] out;
-	reg [2:0] state;
+	reg [3:0] state;
 
-	parameter zero=0, um=1, dois=2, tres=3, quatro=4;
-	/*
-	zero = aguardando total ser 30 (ou seja, estado de recepção de valores)
-	um = verifica se total >= 30
-	dois = dá troco em caso de cancelamento
-	tres = dá o doce quando não é necessário troco
-	quatro = dá o doce e o troco
-	*/
+	parameter est_0 = 0, est_5 = 1, est_10 = 2, est_15 = 3, est_20 = 4, est_25 = 5, est_30 = 6, est_30plus = 7, est_cancel = 8;
 
 	initial begin
-		given = 0;
-		state = zero;
+		state = est_0;
 	end
 
 	always @(state) 
-		 begin
+		begin
 			//$display("\nSTATE: %d, current_in: %b, acc = %d", state, in, given,);
-			  case (state)
-					zero:
-						begin
-							//$display("Total: %d",given);
-						end
-					um:
-						begin
-							if (in == 2'b01)
-								begin
-									$display("+5");
-									given+=5;
-								end
-							else if (in == 2'b10)
-								begin
-									$display("+10");
-									given+=10;
-								end
-							else if (in == 2'b11)
-								begin
-									$display("+25");
-									given+=25;
-								end
-
-						end
-					dois:
-						begin
-							$display("***Cancelado***");
-							out = 2'b10;
-							given = 0;
-						end
-					tres:
-						begin
-							$display("***TOMA BALA***");
-							out = 2'b11;
-							given = 0;
-						end
-					quatro:
-						begin
-							$display("***TOMA BALA E TROCO***");
-							out = 2'b10;
-							given = 0;
-						end
-					default:
-						$display("deu merda.");
-			  endcase
-		 end
+			case (state)
+				est_0:
+					begin
+						$display("\nAguardando nova insercao...\n");
+						out = 2'b00;
+					end
+				est_5:
+					begin
+						out = 2'b00;
+					end
+				est_10:
+					begin
+						out = 2'b00;
+					end
+				est_15:
+					begin
+						out = 2'b00;
+					end
+				est_20:
+					begin
+						out = 2'b00;
+					end
+				est_25:
+					begin
+						out = 2'b00;
+					end
+				est_30:
+					begin
+						out = 2'b10;
+						$display("\n***TOMA BALA***\n");
+						
+					end
+				est_30plus:
+					begin
+						out = 2'b11;
+						$display("\n***TOMA BALA e TROCO***\n");
+					end
+				est_cancel:
+					begin
+						out = 2'b01;
+						$display("Cancelado.");
+					end
+				default:
+					$display("caso default, algum erro");
+			endcase
+		end
 
 	always @(posedge clk)
 		begin
-			case (state)
-				zero:
-					begin
-						state = um;
-					end
-				um:
-					begin
-						if (in == 2'b00)
+			if (confirm)
+				begin
+					case (state)
+						est_0:
 							begin
-								state = dois;
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_5;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_10;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_25;
+									end
 							end
-						else if (given == 30)
+							
+						est_5:
 							begin
-								state = tres;
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_10;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_15;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_30;
+									end
 							end
-						else if (given > 30)
-							begin
-								state = quatro;
-							end
-						else if (given < 30)
-							state = zero;
 						
-					end
-
-				dois:
-					begin
-						state = zero;
-					end
-				tres:
-					begin
-						state = zero;
-					end
-				quatro:
-					begin
-						state = zero;
-					end
-				endcase
+						est_10:
+							begin
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_15;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_20;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_30plus;
+									end
+							end
+						
+						est_15:
+							begin
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_20;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_25;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_30plus;
+									end
+							end
+						
+						est_20:
+							begin
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_25;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_30;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_30plus;
+									end
+							end
+						
+						est_25:
+							begin
+								if (in == 2'b00)
+									begin
+										state = est_cancel;
+									end
+								else if (in == 2'b01)
+									begin
+										state = est_30;
+									end
+								else if (in == 2'b10)
+									begin
+										state = est_30plus;
+									end
+								else if (in == 2'b11)
+									begin
+										state = est_30plus;
+									end
+							end
+						
+						est_30:
+							begin
+								state = est_0;
+							end
+						
+						est_30plus:
+							begin
+								state = est_0;
+							end
+						endcase
+				end
 		end
 
 endmodule
 
 module testbench();
 
-    reg clk;
+    reg clk, confirm;
     reg [1:0] in;
 	wire [1:0] out;
 
-    maosma display(.in(in), .clk(clk), .out(out));
+    maosma display(.in(in), .clk(clk), .out(out), .confirm(confirm));
 
     initial begin
-
-        
-
-        clk = 1'b1;
-		in = 2'b01;
+		confirm = 1'b1;
 		//$monitor("IN = %b, clk = %b", in, clk);
-		
-		#4;
+		#2;
 		in = 2'b11;
-		
-		#4;
-		in = 2'b11;
-		#4;
-		in = 2'b11;
-		
-		#4;
+		#2;
 		in = 2'b10;
 		
-		#4;
-		in = 2'b10;
-		
-		#4;
-		in = 2'b10;
-		
-		#4;
-		in = 2'b10;
-		
-		#4;
-		in = 2'b00;
-		#16;
+		#3;
 		$finish;
     
     end
-
+	initial
+		clk = 0;
     always #1 clk = ~clk;
+	//always #1 confirm = ~confirm;
 
 endmodule
