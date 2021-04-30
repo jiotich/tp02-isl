@@ -213,8 +213,7 @@ module testbench();
 
     initial begin
 		confirm = 1'b1;
-		//$monitor("IN = %b, clk = %b", in, clk);
-		#2;
+		//$monitor("in = %b, out = %b", in, out);
 		in = 2'b11;
 		#2;
 		in = 2'b10;
