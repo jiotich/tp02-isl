@@ -294,7 +294,7 @@ Aqui vemos um exemplo de cancelamento e devolução. O estado 8 é equivalente a
 {DESLIGA O DISPLAY DE ESTADO}
 Terminados os exemplos requeridos no TP, também gostariamos de mostrar o exemplo uma sequencia de compras,
 que foi especificado que a máquina deveria suportar.
-Aqui, primeiro adicionamos 3 moedas de 10, depois uma de 5, uma de 10 e uma de 25
+Aqui, primeiro adicionamos 3 moedas de 10, depois uma de 5, uma de 10 e uma de 25, e após isso, a adição de uma de 5, uma de 10 e um cancelamento.
 5°-
 in = 2'b10;
 		#2;
